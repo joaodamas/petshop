@@ -3,6 +3,10 @@
 alter table public.petshops enable row level security;
 alter table public.petshop_members enable row level security;
 
+drop policy if exists members_select on public.petshop_members;
+create policy members_select on public.petshop_members
+for select using (user_id = auth.uid());
+
 drop policy if exists petshops_insert on public.petshops;
 create policy petshops_insert on public.petshops
 for insert to authenticated

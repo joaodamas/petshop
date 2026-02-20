@@ -261,7 +261,7 @@ for delete using (public.fn_is_member(id));
 
 drop policy if exists members_select on public.petshop_members;
 create policy members_select on public.petshop_members
-for select using (public.fn_is_member(petshop_id));
+for select using (user_id = auth.uid());
 
 drop policy if exists members_write on public.petshop_members;
 drop policy if exists members_insert_bootstrap on public.petshop_members;
