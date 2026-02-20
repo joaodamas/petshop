@@ -37,25 +37,8 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(new URL('/app/dashboard', request.url))
   }
 
-  if (userData.user && isAppRoute) {
-    const { data: member } = await supabase
-      .from('petshop_members')
-      .select('petshops(name)')
-      .eq('user_id', userData.user.id)
-      .limit(1)
-      .maybeSingle()
-
-    const shopName = (member as any)?.petshops?.name as string | undefined
-    const onboardingNeeded = !shopName || shopName === 'Meu Petshop'
-
-    if (onboardingNeeded && pathname !== '/app/onboarding') {
-      return NextResponse.redirect(new URL('/app/onboarding', request.url))
-    }
-
-    if (!onboardingNeeded && pathname === '/app/onboarding') {
-      return NextResponse.redirect(new URL('/app/dashboard', request.url))
-    }
-  }
+  // Nao bloquear navegacao do app com regra fraca de onboarding.
+  // O onboarding continua disponivel em /app/onboarding.
 
   return response
 }
