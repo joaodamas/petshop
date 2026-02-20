@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { supabaseBrowser } from '@/lib/supabase/client'
 
 export default function LoginPage() {
-  const supabase = supabaseBrowser()
   const router = useRouter()
 
   const [email, setEmail] = useState('')
@@ -15,6 +14,7 @@ export default function LoginPage() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
+    const supabase = supabaseBrowser()
     setLoading(true)
     setError(null)
 
