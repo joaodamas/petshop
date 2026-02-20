@@ -2,6 +2,7 @@ import { ensurePetshopForUser } from '@/lib/db'
 import { supabaseServer } from '@/lib/supabase/server'
 import { AppSidebarNav } from '@/components/AppSidebarNav'
 import { MobileAppTabs } from '@/components/MobileAppTabs'
+import { QuickCreateButton } from '@/components/QuickCreateButton'
 import {
   Bell,
   LogOut,
@@ -83,6 +84,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               </div>
 
               <div className="flex items-center gap-5">
+                <QuickCreateButton />
                 <button className="relative p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all">
                   <Bell size={22} />
                   <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-indigo-600 rounded-full border-2 border-white shadow-sm" />
