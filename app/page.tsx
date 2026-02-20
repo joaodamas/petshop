@@ -1,8 +1,8 @@
 export default function LandingPage() {
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900 text-white">
+    <main className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-indigo-950 text-white">
       <header className="mx-auto max-w-6xl px-6 py-6 flex items-center justify-between">
-        <div className="font-semibold tracking-tight">PetSystem</div>
+        <div className="font-bold tracking-tight text-lg">PetSystem</div>
         <nav className="flex gap-3">
           <a className="text-sm text-slate-300 hover:text-white" href="#features">Funcionalidades</a>
           <a className="text-sm text-slate-300 hover:text-white" href="/pricing">Planos</a>
@@ -13,11 +13,11 @@ export default function LandingPage() {
 
       <section className="mx-auto max-w-6xl px-6 py-14 grid lg:grid-cols-2 gap-10 items-center">
         <div>
-          <h1 className="text-4xl lg:text-5xl font-semibold leading-tight">
-            Gestao completa para Petshops que querem crescer de verdade.
+          <h1 className="text-4xl lg:text-6xl font-semibold leading-tight">
+            Gestao premium para operacao pet hibrida.
           </h1>
           <p className="mt-4 text-slate-300 text-lg">
-            Agenda, clientes, pets, vendas, estoque e financeiro em um unico sistema simples e rapido.
+            Agenda, atendimento, vendas, estoque e financeiro em uma interface moderna, elegante e muito funcional.
           </p>
           <div className="mt-8 flex gap-3">
             <a href="/signup" className="rounded-xl bg-white text-slate-900 px-5 py-3 text-sm font-medium hover:bg-slate-100">Teste gratis por 7 dias</a>
@@ -25,10 +25,10 @@ export default function LandingPage() {
           </div>
         </div>
 
-        <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
+        <div className="rounded-3xl border border-white/10 bg-white/5 p-4 shadow-2xl shadow-indigo-900/40">
           <div className="rounded-2xl bg-slate-950/40 border border-white/10 p-6">
             <div className="text-sm text-slate-300 mb-2">Preview</div>
-            <div className="h-64 rounded-2xl bg-gradient-to-br from-white/10 to-white/5 border border-white/10" />
+            <div className="h-64 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-cyan-300/10 border border-white/10" />
           </div>
         </div>
       </section>
