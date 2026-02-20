@@ -1,4 +1,8 @@
 -- Execute este script no Supabase SQL Editor para corrigir erro de bootstrap (primeiro login)
+begin;
+
+-- Serializa esta migracao para evitar deadlock quando houver outra sessao SQL aberta.
+select pg_advisory_lock(842001);
 
 alter table public.petshops enable row level security;
 alter table public.petshop_members enable row level security;
@@ -33,3 +37,6 @@ with check (
     where m.petshop_id = petshop_members.petshop_id
   )
 );
+
+select pg_advisory_unlock(842001);
+commit;
