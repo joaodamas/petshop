@@ -33,7 +33,7 @@ export default function LoginPage() {
     <main className="min-h-screen grid lg:grid-cols-2 bg-gradient-to-b from-slate-950 via-slate-900 to-indigo-950">
       <section className="hidden lg:flex text-white p-12 items-center border-r border-white/10">
         <div className="max-w-md">
-          <div className="text-sm text-slate-300">PetSystem Premium</div>
+          <div className="text-sm text-slate-300">PetHub Premium</div>
           <h1 className="mt-3 text-4xl font-semibold leading-tight">A operacao do seu petshop em alto nivel.</h1>
           <ul className="mt-6 text-slate-300 space-y-2 text-sm">
             <li>Agenda organizada e rapida</li>

@@ -37,6 +37,16 @@ h3 {
   font-family: var(--font-title), sans-serif;
 }
 
+.brand-wordmark {
+  font-family: var(--font-brand), sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  background: linear-gradient(110deg, #dbeafe 0%, #7dd3fc 24%, #818cf8 62%, #c4b5fd 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
 a {
   color: inherit;
   text-decoration: none;
