@@ -1,6 +1,6 @@
 import { revalidatePath } from 'next/cache'
 import { Calendar, Clock3, Download, Filter, Plus, Save, Search } from 'lucide-react'
-import { createAppointment, listAgenda, listClients, listPets, listServices } from '@/lib/db'
+import { createAppointment, listAgenda, listClients, listPets, listServices, updateAppointmentStatus } from '@/lib/db'
 import { generateWhatsAppLink } from '@/lib/whatsapp'
 
 function todayRange() {
@@ -18,13 +18,15 @@ function formatStatus(status: string) {
   return { label: 'Agendado', cls: 'bg-slate-100 text-slate-600' }
 }
 
-export default async function AgendaPage() {
+export default async function AgendaPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+  const params = await searchParams
+  const q = (params.q ?? '').trim()
   const range = todayRange()
   const [appointments, clients, pets, services] = await Promise.all([
     listAgenda(range.from, range.to),
     listClients(),
     listPets(),
-    listServices(),
+    listServices(q),
   ])
 
   async function createAppointmentAction(formData: FormData) {
@@ -47,6 +49,16 @@ export default async function AgendaPage() {
       notes: String(formData.get('notes') ?? '') || null,
     })
 
+    revalidatePath('/app/agenda')
+    revalidatePath('/app/dashboard')
+  }
+
+  async function updateStatusAction(formData: FormData) {
+    'use server'
+
+    const id = String(formData.get('id') ?? '')
+    const status = String(formData.get('status') ?? '') as 'scheduled' | 'in_progress' | 'done' | 'canceled'
+    await updateAppointmentStatus(id, status)
     revalidatePath('/app/agenda')
     revalidatePath('/app/dashboard')
   }
@@ -116,10 +128,10 @@ export default async function AgendaPage() {
 
         <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden flex flex-col">
           <div className="p-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/30">
-            <div className="relative flex-1 max-w-xs">
+            <form className="relative flex-1 max-w-xs" method="get">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-              <input type="text" placeholder="Filtrar agenda..." className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-xs outline-none" />
-            </div>
+              <input name="q" defaultValue={q} type="text" placeholder="Filtrar servicos..." className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-xs outline-none" />
+            </form>
             <div className="flex items-center gap-2">
               <button className="p-2 text-slate-400 hover:text-indigo-600 transition-colors"><Filter size={18} /></button>
               <button className="p-2 text-slate-400 hover:text-indigo-600 transition-colors"><Download size={18} /></button>
@@ -160,18 +172,29 @@ export default async function AgendaPage() {
                         <span className={`text-[10px] font-bold px-2 py-1 rounded-md uppercase ${s.cls}`}>{s.label}</span>
                       </td>
                       <td className="px-6 py-4">
-                        {hasPhone ? (
-                          <a
-                            href={generateWhatsAppLink(phone, appointment.pets?.name ?? 'seu pet', when)}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-xs font-semibold text-indigo-600 hover:underline"
-                          >
-                            WhatsApp
-                          </a>
-                        ) : (
-                          <span className="text-xs text-slate-400">Sem numero</span>
-                        )}
+                        <div className="flex items-center gap-3">
+                          {hasPhone ? (
+                            <a
+                              href={generateWhatsAppLink(phone, appointment.pets?.name ?? 'seu pet', when)}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-xs font-semibold text-indigo-600 hover:underline"
+                            >
+                              WhatsApp
+                            </a>
+                          ) : (
+                            <span className="text-xs text-slate-400">Sem numero</span>
+                          )}
+                          <form action={updateStatusAction} className="inline-flex gap-2">
+                            <input type="hidden" name="id" value={appointment.id} />
+                            <button name="status" value="done" className="text-[10px] rounded-md border border-emerald-200 bg-emerald-50 px-2 py-1 text-emerald-700 font-semibold">
+                              Concluir
+                            </button>
+                            <button name="status" value="canceled" className="text-[10px] rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-rose-700 font-semibold">
+                              Cancelar
+                            </button>
+                          </form>
+                        </div>
                       </td>
                     </tr>
                   )

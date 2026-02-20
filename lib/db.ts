@@ -60,23 +60,28 @@ export async function getMyPetshop() {
 
   const { data, error } = await supabase
     .from('petshop_members')
-    .select('petshop_id, petshops(id, name, plan)')
+    .select('petshop_id, petshops(id, name, plan, billing_cycle)')
     .eq('user_id', user.id)
     .limit(1)
     .single()
 
   if (error) throw error
   const shop = Array.isArray((data as any).petshops) ? (data as any).petshops[0] : (data as any).petshops
-  return shop as { id: string; name: string; plan: string | null }
+  return shop as { id: string; name: string; plan: string | null; billing_cycle: 'monthly' | 'quarterly' | 'semiannual' | null }
 }
 
-export async function updateMyPetshopProfile(input: { name: string; plan: 'free' | 'pro' | 'enterprise' }) {
+export async function updateMyPetshopProfile(input: {
+  name: string
+  plan: 'free' | 'pro' | 'enterprise'
+  billing_cycle: 'monthly' | 'quarterly' | 'semiannual'
+}) {
   const { supabase } = await requireUser()
   const petshop_id = await getMyPetshopId()
 
   const { error } = await supabase.from('petshops').update({
     name: input.name,
     plan: input.plan,
+    billing_cycle: input.billing_cycle,
   }).eq('id', petshop_id)
 
   if (error) throw error
@@ -96,9 +101,13 @@ export async function getMyPetshopId() {
   return data.petshop_id as string
 }
 
-export async function listClients() {
+export async function listClients(search?: string) {
   const { supabase } = await requireUser()
-  const { data, error } = await supabase.from('clients').select('*').order('created_at', { ascending: false })
+  let query = supabase.from('clients').select('*').order('created_at', { ascending: false })
+  if (search && search.trim()) {
+    query = query.or(`name.ilike.%${search}%,phone.ilike.%${search}%,whatsapp.ilike.%${search}%,email.ilike.%${search}%`)
+  }
+  const { data, error } = await query
   if (error) throw error
   return data
 }
@@ -111,12 +120,16 @@ export async function createClient(input: unknown) {
   if (error) throw error
 }
 
-export async function listPets() {
+export async function listPets(search?: string) {
   const { supabase } = await requireUser()
-  const { data, error } = await supabase
+  let query = supabase
     .from('pets')
     .select('*, clients(name)')
     .order('created_at', { ascending: false })
+  if (search && search.trim()) {
+    query = query.or(`name.ilike.%${search}%,species.ilike.%${search}%,breed.ilike.%${search}%`)
+  }
+  const { data, error } = await query
   if (error) throw error
   return data
 }
@@ -129,9 +142,13 @@ export async function createPet(input: unknown) {
   if (error) throw error
 }
 
-export async function listServices() {
+export async function listServices(search?: string) {
   const { supabase } = await requireUser()
-  const { data, error } = await supabase.from('services').select('*').eq('is_active', true).order('name')
+  let query = supabase.from('services').select('*').eq('is_active', true).order('name')
+  if (search && search.trim()) {
+    query = query.ilike('name', `%${search}%`)
+  }
+  const { data, error } = await query
   if (error) throw error
   return data
 }
@@ -152,13 +169,17 @@ export async function createService(input: unknown) {
   if (error) throw error
 }
 
-export async function listProducts() {
+export async function listProducts(search?: string) {
   const { supabase } = await requireUser()
-  const { data, error } = await supabase
+  let query = supabase
     .from('products')
     .select('*')
     .eq('is_active', true)
     .order('created_at', { ascending: false })
+  if (search && search.trim()) {
+    query = query.or(`name.ilike.%${search}%,category.ilike.%${search}%,barcode.ilike.%${search}%`)
+  }
+  const { data, error } = await query
 
   if (error) throw error
   return data
@@ -206,6 +227,19 @@ export async function createAppointment(input: unknown) {
     ...parsed,
     status: 'scheduled',
   })
+
+  if (error) throw error
+}
+
+export async function updateAppointmentStatus(id: string, status: 'scheduled' | 'in_progress' | 'done' | 'canceled') {
+  const { supabase } = await requireUser()
+  const petshop_id = await getMyPetshopId()
+
+  const { error } = await supabase
+    .from('appointments')
+    .update({ status })
+    .eq('id', id)
+    .eq('petshop_id', petshop_id)
 
   if (error) throw error
 }
@@ -273,14 +307,18 @@ export async function addSaleItem(input: unknown) {
   if (error) throw error
 }
 
-export async function listSales(limit = 30) {
+export async function listSales(limit = 30, search?: string) {
   const { supabase } = await requireUser()
 
-  const { data, error } = await supabase
+  let query = supabase
     .from('sales')
     .select('id, sold_at, payment, total_cents, clients(name)')
     .order('sold_at', { ascending: false })
     .limit(limit)
+  if (search && search.trim()) {
+    query = query.ilike('notes', `%${search}%`)
+  }
+  const { data, error } = await query
 
   if (error) throw error
   return data
@@ -375,6 +413,16 @@ export async function getDashboard(dayISO: string) {
   const todaySalesCents = (salesToday ?? []).reduce((acc, row) => acc + (row.total_cents ?? 0), 0)
   const monthSalesCents = (salesMonth ?? []).reduce((acc, row) => acc + (row.total_cents ?? 0), 0)
   const lowStock = (products ?? []).filter((p) => p.stock_qty <= p.min_stock_qty).slice(0, 8)
+  const todayAppointments = (appointments ?? []).length
+  const doneAppointments = (appointments ?? []).filter((a) => a.status === 'done').length
+
+  const serviceCount = new Map<string, number>()
+  for (const a of appointments ?? []) {
+    const serviceName = Array.isArray((a as any).services) ? (a as any).services?.[0]?.name : (a as any).services?.name
+    if (!serviceName) continue
+    serviceCount.set(serviceName, (serviceCount.get(serviceName) ?? 0) + 1)
+  }
+  const topService = [...serviceCount.entries()].sort((a, b) => b[1] - a[1])[0] ?? null
 
   const { data: allSales, error: allSalesErr } = await supabase
     .from('sales')
@@ -409,15 +457,31 @@ export async function getDashboard(dayISO: string) {
 
   const clientesInativos = (clientsData ?? []).filter((c) => !activeClientIds.has(c.id)).length
 
+  const { data: monthLedger, error: monthLedgerErr } = await supabase
+    .from('ledger_entries')
+    .select('type, amount_cents')
+    .eq('petshop_id', petshop_id)
+    .gte('occurred_on', monthStart.toISOString().slice(0, 10))
+    .lt('occurred_on', monthEnd.toISOString().slice(0, 10))
+
+  if (monthLedgerErr) throw monthLedgerErr
+
+  const monthIncomeCents = (monthLedger ?? []).filter((l) => l.type === 'income').reduce((acc, row) => acc + row.amount_cents, 0)
+  const monthExpenseCents = (monthLedger ?? []).filter((l) => l.type === 'expense').reduce((acc, row) => acc + row.amount_cents, 0)
+  const monthProfitCents = monthIncomeCents - monthExpenseCents
+
   return {
     todaySalesCents,
     monthSalesCents,
-    todayAppointments: appointments?.length ?? 0,
-    doneAppointments: appointments?.filter((a) => a.status === 'done').length ?? 0,
+    todayAppointments,
+    doneAppointments,
     nextAppointments: (appointments ?? []).slice(0, 5),
     lowStock,
     ticketMedioCents,
     taxaRecorrencia,
     clientesInativos,
+    monthProfitCents,
+    topServiceName: topService?.[0] ?? null,
+    topServiceCount: topService?.[1] ?? 0,
   }
 }

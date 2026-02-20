@@ -3,8 +3,10 @@ import { Download, Filter, PawPrint, Plus, Save, Search } from 'lucide-react'
 import { createPet, listClients, listPets } from '@/lib/db'
 import Link from 'next/link'
 
-export default async function PetsPage() {
-  const [pets, clients] = await Promise.all([listPets(), listClients()])
+export default async function PetsPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+  const params = await searchParams
+  const q = (params.q ?? '').trim()
+  const [pets, clients] = await Promise.all([listPets(q), listClients()])
 
   async function createPetAction(formData: FormData) {
     'use server'
@@ -65,10 +67,10 @@ export default async function PetsPage() {
 
         <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden flex flex-col">
           <div className="p-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/30">
-            <div className="relative flex-1 max-w-xs">
+            <form method="get" className="relative flex-1 max-w-xs">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-              <input type="text" placeholder="Filtrar pets..." className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-xs outline-none" />
-            </div>
+              <input name="q" defaultValue={q} type="text" placeholder="Filtrar pets..." className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-xs outline-none" />
+            </form>
             <div className="flex items-center gap-2">
               <button className="p-2 text-slate-400 hover:text-indigo-600 transition-colors"><Filter size={18} /></button>
               <button className="p-2 text-slate-400 hover:text-indigo-600 transition-colors"><Download size={18} /></button>

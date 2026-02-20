@@ -10,6 +10,7 @@ export default async function OnboardingPage() {
     await updateMyPetshopProfile({
       name: String(formData.get('name') ?? 'Meu Petshop'),
       plan: String(formData.get('plan') ?? 'free') as 'free' | 'pro' | 'enterprise',
+      billing_cycle: String(formData.get('billing_cycle') ?? 'monthly') as 'monthly' | 'quarterly' | 'semiannual',
     })
 
     redirect('/app/dashboard')
@@ -44,6 +45,19 @@ export default async function OnboardingPage() {
               <option value="free">Free</option>
               <option value="pro">Pro</option>
               <option value="enterprise">Enterprise</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 px-1">Ciclo de Cobranca</label>
+            <select
+              name="billing_cycle"
+              defaultValue={petshop.billing_cycle ?? 'monthly'}
+              className="w-full bg-slate-50 border-none rounded-2xl px-4 py-3.5 text-sm outline-none"
+            >
+              <option value="monthly">Mensal</option>
+              <option value="quarterly">Trimestral</option>
+              <option value="semiannual">Semestral</option>
             </select>
           </div>
 

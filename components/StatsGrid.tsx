@@ -1,4 +1,4 @@
-import { AlertTriangle, DollarSign, RefreshCw } from 'lucide-react'
+import { AlertTriangle, Calendar, CheckCircle2, DollarSign, RefreshCw, ShieldAlert } from 'lucide-react'
 import { fmtBRL } from '@/lib/money'
 import type { ReactNode } from 'react'
 
@@ -6,6 +6,9 @@ export interface DashboardStats {
   ticketMedio: number
   taxaRecorrencia: number
   clientesInativos: number
+  agendamentosHoje: number
+  concluidosHoje: number
+  estoqueCritico: number
 }
 
 function StatCard({ title, value, icon, color }: { title: string; value: string; icon: ReactNode; color: string }) {
@@ -22,7 +25,7 @@ function StatCard({ title, value, icon, color }: { title: string; value: string;
 
 export function StatsGrid({ stats }: { stats: DashboardStats }) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
       <StatCard
         title="Ticket Medio"
         value={fmtBRL(stats.ticketMedio)}
@@ -40,6 +43,24 @@ export function StatsGrid({ stats }: { stats: DashboardStats }) {
         value={String(stats.clientesInativos)}
         icon={<AlertTriangle size={18} />}
         color="text-rose-600 bg-rose-50"
+      />
+      <StatCard
+        title="Agendamentos Hoje"
+        value={String(stats.agendamentosHoje)}
+        icon={<Calendar size={18} />}
+        color="text-indigo-600 bg-indigo-50"
+      />
+      <StatCard
+        title="Concluidos Hoje"
+        value={String(stats.concluidosHoje)}
+        icon={<CheckCircle2 size={18} />}
+        color="text-emerald-600 bg-emerald-50"
+      />
+      <StatCard
+        title="Estoque Critico"
+        value={String(stats.estoqueCritico)}
+        icon={<ShieldAlert size={18} />}
+        color="text-amber-600 bg-amber-50"
       />
     </div>
   )

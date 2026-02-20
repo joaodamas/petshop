@@ -6,12 +6,16 @@ create table if not exists public.petshops (
   id uuid primary key default gen_random_uuid(),
   name text not null,
   plan text not null default 'free' check (plan in ('free','pro','enterprise')),
+  billing_cycle text not null default 'monthly' check (billing_cycle in ('monthly','quarterly','semiannual')),
   owner_id uuid references auth.users(id),
   created_at timestamptz not null default now()
 );
 
 alter table public.petshops add column if not exists plan text not null default 'free';
+alter table public.petshops add column if not exists billing_cycle text not null default 'monthly';
 alter table public.petshops add column if not exists owner_id uuid references auth.users(id);
+alter table public.petshops drop constraint if exists petshops_billing_cycle_check;
+alter table public.petshops add constraint petshops_billing_cycle_check check (billing_cycle in ('monthly','quarterly','semiannual'));
 
 -- 2) USER MEMBERSHIP
 create table if not exists public.petshop_members (

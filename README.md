@@ -38,6 +38,7 @@ npm run dev
 - Produtos
 - Vendas
 - Financeiro
+- Onboarding SaaS (plano + ciclo de cobranca)
 
 ## Rotas
 
@@ -50,3 +51,7 @@ npm run dev
 - `/app/products`
 - `/app/sales`
 - `/app/finance`
+
+## Planejamento de entrega
+
+Consulte `SPRINTS.md` para o detalhamento das 3 sprints executadas.

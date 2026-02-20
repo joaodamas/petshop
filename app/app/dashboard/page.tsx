@@ -43,11 +43,14 @@ export default async function DashboardPage() {
             ticketMedio: data.ticketMedioCents,
             taxaRecorrencia: data.taxaRecorrencia,
             clientesInativos: data.clientesInativos,
+            agendamentosHoje: data.todayAppointments,
+            concluidosHoje: data.doneAppointments,
+            estoqueCritico: data.lowStock.length,
           }}
         />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 mb-8">
         <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
           <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Faturamento Mes</p>
           <h3 className="text-2xl font-bold mt-2 text-slate-800">{fmtBRL(data.monthSalesCents)}</h3>
@@ -55,6 +58,11 @@ export default async function DashboardPage() {
         <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
           <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Faturamento Hoje</p>
           <h3 className="text-2xl font-bold mt-2 text-slate-800">{fmtBRL(data.todaySalesCents)}</h3>
+        </div>
+        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Resultado Mes</p>
+          <h3 className="text-2xl font-bold mt-2 text-slate-800">{fmtBRL(data.monthProfitCents)}</h3>
+          <p className="text-xs text-slate-400 mt-1">Top servico: {data.topServiceName ? `${data.topServiceName} (${data.topServiceCount})` : 'Sem dados'}</p>
         </div>
       </div>
 

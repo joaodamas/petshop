@@ -13,9 +13,21 @@ function monthRange() {
   }
 }
 
-export default async function FinancePage() {
+export default async function FinancePage({ searchParams }: { searchParams: Promise<{ q?: string; type?: string; from?: string; to?: string }> }) {
+  const params = await searchParams
   const range = monthRange()
-  const ledger = await listLedger(range.from, range.to)
+  const q = (params.q ?? '').trim().toLowerCase()
+  const filterType = params.type ?? 'all'
+  const from = params.from ?? range.from
+  const to = params.to ?? range.to
+  const rawLedger = await listLedger(from, to)
+  const ledger = rawLedger.filter((entry: any) => {
+    const typePass = filterType === 'all' ? true : entry.type === filterType
+    const searchPass = q
+      ? `${entry.category ?? ''} ${entry.description ?? ''}`.toLowerCase().includes(q)
+      : true
+    return typePass && searchPass
+  })
 
   async function createLedgerAction(formData: FormData) {
     'use server'
@@ -95,10 +107,19 @@ export default async function FinancePage() {
 
         <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden flex flex-col">
           <div className="p-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/30">
-            <div className="relative flex-1 max-w-xs">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-              <input type="text" placeholder="Filtrar lancamentos..." className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-xs outline-none" />
-            </div>
+            <form method="get" className="flex items-center gap-2">
+              <input name="from" type="date" defaultValue={from} className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs outline-none" />
+              <input name="to" type="date" defaultValue={to} className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs outline-none" />
+              <select name="type" defaultValue={filterType} className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs outline-none">
+                <option value="all">Todos</option>
+                <option value="income">Entradas</option>
+                <option value="expense">Saidas</option>
+              </select>
+              <div className="relative flex-1 max-w-xs">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                <input name="q" defaultValue={q} type="text" placeholder="Filtrar lancamentos..." className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-xs outline-none" />
+              </div>
+            </form>
             <div className="flex items-center gap-2">
               <button className="p-2 text-slate-400 hover:text-indigo-600 transition-colors"><Filter size={18} /></button>
               <button className="p-2 text-slate-400 hover:text-indigo-600 transition-colors"><Download size={18} /></button>
