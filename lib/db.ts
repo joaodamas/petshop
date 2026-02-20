@@ -40,6 +40,8 @@ export async function ensurePetshopForUser() {
   const { error: petshopError } = await supabase.from('petshops').insert({
     id: petshopId,
     name: 'Meu Petshop',
+    plan: 'free',
+    owner_id: user.id,
   })
 
   if (petshopError) throw petshopError
@@ -51,6 +53,33 @@ export async function ensurePetshopForUser() {
   if (memberError) throw memberError
 
   return petshopId
+}
+
+export async function getMyPetshop() {
+  const { supabase, user } = await requireUser()
+
+  const { data, error } = await supabase
+    .from('petshop_members')
+    .select('petshop_id, petshops(id, name, plan)')
+    .eq('user_id', user.id)
+    .limit(1)
+    .single()
+
+  if (error) throw error
+  const shop = Array.isArray((data as any).petshops) ? (data as any).petshops[0] : (data as any).petshops
+  return shop as { id: string; name: string; plan: string | null }
+}
+
+export async function updateMyPetshopProfile(input: { name: string; plan: 'free' | 'pro' | 'enterprise' }) {
+  const { supabase } = await requireUser()
+  const petshop_id = await getMyPetshopId()
+
+  const { error } = await supabase.from('petshops').update({
+    name: input.name,
+    plan: input.plan,
+  }).eq('id', petshop_id)
+
+  if (error) throw error
 }
 
 export async function getMyPetshopId() {
@@ -158,7 +187,7 @@ export async function listAgenda(fromISO: string, toISO: string) {
   const { supabase } = await requireUser()
   const { data, error } = await supabase
     .from('appointments')
-    .select('*, clients(name), pets(name), services(name)')
+    .select('*, clients(name, phone, whatsapp), pets(name), services(name)')
     .gte('starts_at', fromISO)
     .lt('starts_at', toISO)
     .order('starts_at')
@@ -179,6 +208,43 @@ export async function createAppointment(input: unknown) {
   })
 
   if (error) throw error
+}
+
+export async function getPetTimeline(petId: string) {
+  const { supabase } = await requireUser()
+
+  const { data: pet, error: petError } = await supabase
+    .from('pets')
+    .select('id, name, species, breed, clients(name)')
+    .eq('id', petId)
+    .single()
+
+  if (petError) throw petError
+
+  const { data: events, error: eventsError } = await supabase
+    .from('appointments')
+    .select('id, starts_at, status, notes, services(name)')
+    .eq('pet_id', petId)
+    .order('starts_at', { ascending: false })
+    .limit(80)
+
+  if (eventsError) throw eventsError
+
+  const timeline = (events ?? []).map((event) => {
+    const serviceName = Array.isArray((event as any).services)
+      ? (event as any).services?.[0]?.name
+      : (event as any).services?.name
+
+    return {
+      id: event.id,
+      date: new Date(event.starts_at).toLocaleDateString('pt-BR'),
+      type: serviceName ? `Servico: ${serviceName}` : 'Atendimento',
+      description: event.notes || `Status: ${event.status}`,
+      status: event.status,
+    }
+  })
+
+  return { pet, timeline }
 }
 
 export async function createSale(input: unknown) {
@@ -259,6 +325,7 @@ export async function createLedgerEntry(input: {
 
 export async function getDashboard(dayISO: string) {
   const { supabase } = await requireUser()
+  const petshop_id = await getMyPetshopId()
 
   const start = new Date(dayISO)
   const end = new Date(start)
@@ -270,6 +337,7 @@ export async function getDashboard(dayISO: string) {
   const { data: salesToday, error: salesTodayErr } = await supabase
     .from('sales')
     .select('total_cents')
+    .eq('petshop_id', petshop_id)
     .gte('sold_at', start.toISOString())
     .lt('sold_at', end.toISOString())
 
@@ -278,6 +346,7 @@ export async function getDashboard(dayISO: string) {
   const { data: salesMonth, error: salesMonthErr } = await supabase
     .from('sales')
     .select('total_cents')
+    .eq('petshop_id', petshop_id)
     .gte('sold_at', monthStart.toISOString())
     .lt('sold_at', monthEnd.toISOString())
 
@@ -286,6 +355,7 @@ export async function getDashboard(dayISO: string) {
   const { data: appointments, error: appointmentsErr } = await supabase
     .from('appointments')
     .select('id, status, starts_at, clients(name), pets(name), services(name)')
+    .eq('petshop_id', petshop_id)
     .gte('starts_at', start.toISOString())
     .lt('starts_at', end.toISOString())
     .order('starts_at')
@@ -295,6 +365,7 @@ export async function getDashboard(dayISO: string) {
   const { data: products, error: productsErr } = await supabase
     .from('products')
     .select('id, name, stock_qty, min_stock_qty')
+    .eq('petshop_id', petshop_id)
     .eq('is_active', true)
     .order('stock_qty', { ascending: true })
     .limit(50)
@@ -305,6 +376,35 @@ export async function getDashboard(dayISO: string) {
   const monthSalesCents = (salesMonth ?? []).reduce((acc, row) => acc + (row.total_cents ?? 0), 0)
   const lowStock = (products ?? []).filter((p) => p.stock_qty <= p.min_stock_qty).slice(0, 8)
 
+  const { data: allSales, error: allSalesErr } = await supabase
+    .from('sales')
+    .select('id, sold_at, total_cents, client_id')
+    .eq('petshop_id', petshop_id)
+    .gte('sold_at', monthStart.toISOString())
+    .lt('sold_at', monthEnd.toISOString())
+
+  if (allSalesErr) throw allSalesErr
+
+  const totalSalesCount = allSales?.length ?? 0
+  const ticketMedioCents = totalSalesCount > 0 ? Math.round(monthSalesCents / totalSalesCount) : 0
+
+  const recurringClients = new Set((allSales ?? []).map((s) => s.client_id).filter(Boolean))
+  const taxaRecorrencia = totalSalesCount > 0 ? Math.round((recurringClients.size / totalSalesCount) * 100) : 0
+
+  const inactivityCutoff = new Date(start)
+  inactivityCutoff.setDate(inactivityCutoff.getDate() - 60)
+
+  const { data: inactiveClientsData, error: inactiveClientsErr } = await supabase
+    .from('clients')
+    .select('id')
+    .eq('petshop_id', petshop_id)
+    .not('id', 'in', `(${(allSales ?? [])
+      .filter((s) => new Date(s.sold_at) >= inactivityCutoff && s.client_id)
+      .map((s) => `'${s.client_id}'`)
+      .join(',') || "''"})`)
+
+  if (inactiveClientsErr) throw inactiveClientsErr
+
   return {
     todaySalesCents,
     monthSalesCents,
@@ -312,5 +412,8 @@ export async function getDashboard(dayISO: string) {
     doneAppointments: appointments?.filter((a) => a.status === 'done').length ?? 0,
     nextAppointments: (appointments ?? []).slice(0, 5),
     lowStock,
+    ticketMedioCents,
+    taxaRecorrencia,
+    clientesInativos: inactiveClientsData?.length ?? 0,
   }
 }

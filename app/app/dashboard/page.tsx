@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import { AlertTriangle, Calendar, ChevronRight, Clock, DollarSign, Package, TrendingUp } from 'lucide-react'
+import { Calendar, ChevronRight, Clock, Package } from 'lucide-react'
+import { StatsGrid } from '@/components/StatsGrid'
 import { getDashboard } from '@/lib/db'
 import { fmtBRL } from '@/lib/money'
 
@@ -23,37 +24,6 @@ export default async function DashboardPage() {
   const data = await getDashboard(dayISO)
   const appointments = (data.nextAppointments ?? []) as AppointmentRow[]
 
-  const stats = [
-    {
-      title: 'Faturamento Dia',
-      value: fmtBRL(data.todaySalesCents),
-      sub: undefined,
-      icon: DollarSign,
-      color: 'text-blue-600 bg-blue-50',
-    },
-    {
-      title: 'Faturamento Mes',
-      value: fmtBRL(data.monthSalesCents),
-      sub: undefined,
-      icon: TrendingUp,
-      color: 'text-indigo-600 bg-indigo-50',
-    },
-    {
-      title: 'Agendamentos Hoje',
-      value: String(data.todayAppointments),
-      sub: `${data.doneAppointments} concluidos`,
-      icon: Calendar,
-      color: 'text-emerald-600 bg-emerald-50',
-    },
-    {
-      title: 'Estoque Baixo',
-      value: String(data.lowStock.length).padStart(2, '0'),
-      sub: 'Itens criticos',
-      icon: AlertTriangle,
-      color: 'text-amber-600 bg-amber-50',
-    },
-  ]
-
   return (
     <div className="max-w-6xl mx-auto">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
@@ -67,22 +37,25 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
-        {stats.map((stat) => (
-          <div
-            key={stat.title}
-            className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"
-          >
-            <div className="flex justify-between items-start mb-4">
-              <div className={`p-3 rounded-xl transition-transform group-hover:scale-110 ${stat.color}`}>
-                <stat.icon size={22} />
-              </div>
-            </div>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{stat.title}</p>
-            <h3 className="text-xl font-bold mt-1 text-slate-800 tracking-tight">{stat.value}</h3>
-            {stat.sub ? <p className="text-xs text-slate-400 mt-1 font-medium">{stat.sub}</p> : null}
-          </div>
-        ))}
+      <div className="mb-8">
+        <StatsGrid
+          stats={{
+            ticketMedio: data.ticketMedioCents,
+            taxaRecorrencia: data.taxaRecorrencia,
+            clientesInativos: data.clientesInativos,
+          }}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6 mb-8">
+        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Faturamento Mes</p>
+          <h3 className="text-2xl font-bold mt-2 text-slate-800">{fmtBRL(data.monthSalesCents)}</h3>
+        </div>
+        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Faturamento Hoje</p>
+          <h3 className="text-2xl font-bold mt-2 text-slate-800">{fmtBRL(data.todaySalesCents)}</h3>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

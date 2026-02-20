@@ -5,8 +5,13 @@ create extension if not exists pgcrypto;
 create table if not exists public.petshops (
   id uuid primary key default gen_random_uuid(),
   name text not null,
+  plan text not null default 'free' check (plan in ('free','pro','enterprise')),
+  owner_id uuid references auth.users(id),
   created_at timestamptz not null default now()
 );
+
+alter table public.petshops add column if not exists plan text not null default 'free';
+alter table public.petshops add column if not exists owner_id uuid references auth.users(id);
 
 -- 2) USER MEMBERSHIP
 create table if not exists public.petshop_members (

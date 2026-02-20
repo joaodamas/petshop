@@ -1,6 +1,7 @@
 import { revalidatePath } from 'next/cache'
 import { Download, Filter, PawPrint, Plus, Save, Search } from 'lucide-react'
 import { createPet, listClients, listPets } from '@/lib/db'
+import Link from 'next/link'
 
 export default async function PetsPage() {
   const [pets, clients] = await Promise.all([listPets(), listClients()])
@@ -82,12 +83,13 @@ export default async function PetsPage() {
                   <th className="px-6 py-4">Tutor</th>
                   <th className="px-6 py-4">Especie</th>
                   <th className="px-6 py-4">Raca</th>
+                  <th className="px-6 py-4">Historico</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
                 {pets.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-6 py-10 text-sm text-slate-400 text-center">Nenhum pet registado.</td>
+                    <td colSpan={5} className="px-6 py-10 text-sm text-slate-400 text-center">Nenhum pet registado.</td>
                   </tr>
                 ) : null}
                 {pets.map((pet: any) => (
@@ -99,6 +101,9 @@ export default async function PetsPage() {
                     <td className="px-6 py-4 text-sm text-slate-500">{pet.clients?.name ?? '-'}</td>
                     <td className="px-6 py-4 text-sm text-slate-500">{pet.species ?? '-'}</td>
                     <td className="px-6 py-4 text-sm text-slate-500">{pet.breed ?? '-'}</td>
+                    <td className="px-6 py-4 text-sm text-slate-500">
+                      <Link href={`/app/pets/${pet.id}`} className="text-indigo-600 hover:underline">Ver timeline</Link>
+                    </td>
                   </tr>
                 ))}
               </tbody>

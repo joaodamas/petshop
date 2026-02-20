@@ -1,79 +1,75 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { supabaseBrowser } from '@/lib/supabase/client'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
 
 export default function LoginPage() {
+  const supabase = supabaseBrowser()
+  const router = useRouter()
+
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [mode, setMode] = useState<'login' | 'signup'>('login')
-  const [msg, setMsg] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  async function submit() {
-    const supabase = supabaseBrowser()
-    setMsg(null)
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
 
-    if (mode === 'signup') {
-      const { error } = await supabase.auth.signUp({ email, password })
-      setMsg(error ? error.message : 'Conta criada. Faca login.')
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+
+    setLoading(false)
+    if (error) {
+      setError(error.message)
       return
     }
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    setMsg(error ? error.message : 'Login realizado')
-
-    if (!error) {
-      window.location.href = '/app'
-    }
+    router.push('/app/dashboard')
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 md:p-8">
-      <div className="w-full max-w-md rounded-3xl border border-white/70 bg-white/80 backdrop-blur-md p-6 md:p-7 flex flex-col gap-4 shadow-[0_18px_60px_rgba(20,37,63,0.20)]">
-        <div className="inline-flex w-fit items-center gap-2 rounded-full border border-emerald-900/10 bg-emerald-50 px-3 py-1">
-          <span className="h-2 w-2 rounded-full bg-emerald-600" />
-          <span className="text-xs font-semibold tracking-[0.14em] text-emerald-800">PETSHOP OS</span>
+    <main className="min-h-screen grid lg:grid-cols-2">
+      <section className="hidden lg:flex bg-slate-950 text-white p-10 items-center">
+        <div className="max-w-md">
+          <div className="text-sm text-slate-300">PetSystem</div>
+          <h1 className="mt-3 text-3xl font-semibold leading-tight">Simplifique a gestao do seu petshop.</h1>
+          <ul className="mt-6 text-slate-300 space-y-2 text-sm">
+            <li>Agenda organizada e rapida</li>
+            <li>Clientes e pets com historico</li>
+            <li>Financeiro e vendas em tempo real</li>
+          </ul>
         </div>
+      </section>
 
-        <div className="space-y-1">
-          <h1 className="text-3xl font-bold text-slate-900">Acessar painel</h1>
-          <p className="text-sm text-slate-600">Entre para gerenciar clientes, pets, agenda e vendas.</p>
-        </div>
+      <section className="flex items-center justify-center p-6">
+        <form onSubmit={onSubmit} className="w-full max-w-sm rounded-3xl border border-slate-200 p-6 bg-white">
+          <h2 className="text-xl font-semibold">Entrar</h2>
+          <p className="text-sm text-slate-500 mt-1">Acesse sua conta</p>
 
-        <div className="space-y-2">
-          <label className="text-xs font-semibold tracking-wide text-slate-600">E-mail</label>
-          <Input placeholder="seuemail@petshop.com" value={email} onChange={(e) => setEmail(e.target.value)} />
-        </div>
+          <div className="mt-5 space-y-3">
+            <div>
+              <label className="text-sm">Email</label>
+              <input className="mt-1 w-full rounded-xl border px-3 py-2" value={email} onChange={(e) => setEmail(e.target.value)} type="email" required />
+            </div>
+            <div>
+              <label className="text-sm">Senha</label>
+              <input className="mt-1 w-full rounded-xl border px-3 py-2" value={password} onChange={(e) => setPassword(e.target.value)} type="password" required />
+            </div>
 
-        <div className="space-y-2">
-          <label className="text-xs font-semibold tracking-wide text-slate-600">Senha</label>
-          <Input
-            placeholder="Sua senha"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </div>
+            {error ? <div className="rounded-xl bg-red-50 border border-red-200 p-3 text-sm text-red-700">{error}</div> : null}
 
-        <div className="flex gap-2 pt-1">
-          <Button onClick={submit} type="button" className="flex-1">
-            {mode === 'signup' ? 'Criar conta' : 'Entrar'}
-          </Button>
-          <button
-            type="button"
-            onClick={() => setMode((m) => (m === 'login' ? 'signup' : 'login'))}
-            className="px-4 py-2 rounded-xl border border-slate-300 bg-white/90 text-slate-800 font-medium hover:bg-slate-100 transition"
-          >
-            {mode === 'signup' ? 'Ir login' : 'Cadastrar'}
-          </button>
-        </div>
+            <button disabled={loading} className="w-full rounded-xl bg-slate-900 text-white px-4 py-2 text-sm font-medium disabled:opacity-60">
+              {loading ? 'Entrando...' : 'Entrar'}
+            </button>
 
-        {msg ? (
-          <p className="text-sm rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-slate-700">{msg}</p>
-        ) : null}
-      </div>
-    </div>
+            <div className="flex justify-between text-sm">
+              <a className="text-slate-600 hover:underline" href="/signup">Criar conta</a>
+            </div>
+          </div>
+        </form>
+      </section>
+    </main>
   )
 }

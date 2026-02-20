@@ -1,6 +1,7 @@
 import { revalidatePath } from 'next/cache'
 import { Calendar, Clock3, Download, Filter, Plus, Save, Search } from 'lucide-react'
 import { createAppointment, listAgenda, listClients, listPets, listServices } from '@/lib/db'
+import { generateWhatsAppLink } from '@/lib/whatsapp'
 
 function todayRange() {
   const start = new Date()
@@ -133,16 +134,20 @@ export default async function AgendaPage() {
                   <th className="px-6 py-4">Pet</th>
                   <th className="px-6 py-4">Servico</th>
                   <th className="px-6 py-4">Estado</th>
+                  <th className="px-6 py-4">Lembrete</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
                 {appointments.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-6 py-10 text-sm text-slate-400 text-center">Sem agendamentos hoje.</td>
+                    <td colSpan={5} className="px-6 py-10 text-sm text-slate-400 text-center">Sem agendamentos hoje.</td>
                   </tr>
                 ) : null}
                 {appointments.map((appointment: any) => {
                   const s = formatStatus(appointment.status)
+                  const phone = appointment.clients?.whatsapp || appointment.clients?.phone || ''
+                  const when = new Date(appointment.starts_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+                  const hasPhone = phone.replace(/\D/g, '').length >= 10
                   return (
                     <tr key={appointment.id} className="hover:bg-slate-50/50 transition-colors">
                       <td className="px-6 py-4 text-sm font-bold text-slate-700 flex items-center gap-2">
@@ -153,6 +158,20 @@ export default async function AgendaPage() {
                       <td className="px-6 py-4 text-sm text-slate-500">{appointment.services?.name ?? '-'}</td>
                       <td className="px-6 py-4">
                         <span className={`text-[10px] font-bold px-2 py-1 rounded-md uppercase ${s.cls}`}>{s.label}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        {hasPhone ? (
+                          <a
+                            href={generateWhatsAppLink(phone, appointment.pets?.name ?? 'seu pet', when)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-xs font-semibold text-indigo-600 hover:underline"
+                          >
+                            WhatsApp
+                          </a>
+                        ) : (
+                          <span className="text-xs text-slate-400">Sem numero</span>
+                        )}
                       </td>
                     </tr>
                   )
