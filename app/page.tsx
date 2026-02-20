@@ -42,6 +42,12 @@ export default function LandingPage() {
     { title: 'Automacao WhatsApp', desc: 'Lembretes automaticos de agendamento e retorno de vacinas.', icon: <Icons.Bell /> },
   ]
 
+  const plans = [
+    { name: 'Mensal', price: 'R$ 189', desc: 'Ideal para comecar sem compromisso de longo prazo.', highlight: 'Sem fidelidade' },
+    { name: 'Trimestral', price: 'R$ 499', desc: 'Melhor previsibilidade com desconto operacional.', highlight: 'Economize 12%' },
+    { name: 'Semestral', price: 'R$ 949', desc: 'Maior economia para operacao em escala.', highlight: 'Economize 16%' },
+  ]
+
   return (
     <div className="min-h-screen bg-[#020617] text-slate-300 font-sans selection:bg-blue-500/30 overflow-x-hidden">
       <div className="fixed top-0 left-0 w-full h-full pointer-events-none overflow-hidden z-0">
@@ -60,9 +66,9 @@ export default function LandingPage() {
 
           <div className="hidden md:flex items-center gap-10">
             <a href="#funcionalidades" className="text-sm font-semibold text-slate-400 hover:text-white transition-colors">Funcionalidades</a>
-            <a href="/pricing" className="text-sm font-semibold text-slate-400 hover:text-white transition-colors">Planos</a>
-            <a href="/login" className="text-sm font-semibold text-slate-400 hover:text-white transition-colors">Suporte</a>
-            <a href="/signup" className="bg-white text-black px-6 py-2.5 rounded-full text-sm font-bold hover:bg-blue-50 transition-all active:scale-95 shadow-xl shadow-white/5">Comecar Agora</a>
+            <a href="#planos" className="text-sm font-semibold text-slate-400 hover:text-white transition-colors">Planos</a>
+            <a href="#suporte" className="text-sm font-semibold text-slate-400 hover:text-white transition-colors">Suporte</a>
+            <a href="#planos" className="bg-white text-black px-6 py-2.5 rounded-full text-sm font-bold hover:bg-blue-50 transition-all active:scale-95 shadow-xl shadow-white/5">Comecar Agora</a>
           </div>
         </div>
       </nav>
@@ -82,12 +88,12 @@ export default function LandingPage() {
               A unica plataforma que une gestao clinica e comercial em uma interface de alta performance.
             </p>
             <div className="flex flex-wrap gap-5">
-              <a href="/signup" className="group relative flex items-center gap-3 bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-2xl font-bold transition-all shadow-2xl shadow-blue-600/30 overflow-hidden">
+              <a href="#suporte" className="group relative flex items-center gap-3 bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-2xl font-bold transition-all shadow-2xl shadow-blue-600/30 overflow-hidden">
                 <span className="relative z-10">Solicitar Demonstracao</span>
                 <div className="relative z-10 group-hover:translate-x-1 transition-transform"><Icons.ChevronRight /></div>
                 <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-[shimmer_2s_infinite]" />
               </a>
-              <a href="/pricing" className="px-8 py-4 rounded-2xl font-bold border border-white/10 hover:bg-white/5 transition-all text-white">
+              <a href="#planos" className="px-8 py-4 rounded-2xl font-bold border border-white/10 hover:bg-white/5 transition-all text-white">
                 Ver Planos
               </a>
             </div>
@@ -180,6 +186,30 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <section id="planos" className="relative z-10 py-28 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl lg:text-5xl font-black text-white">Planos para cada fase do petshop</h2>
+            <p className="mt-3 text-slate-400">Escolha o ciclo que combina com sua operacao.</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            {plans.map((plan) => (
+              <article key={plan.name} className="rounded-3xl bg-white/[0.04] border border-white/10 p-8 hover:border-blue-400/40 transition-colors">
+                <span className="inline-flex text-xs font-bold uppercase tracking-wider text-blue-300 bg-blue-500/10 border border-blue-500/20 px-3 py-1 rounded-full">
+                  {plan.highlight}
+                </span>
+                <h3 className="mt-4 text-2xl font-bold text-white">{plan.name}</h3>
+                <p className="mt-2 text-3xl font-black text-white">{plan.price}<span className="text-base text-slate-400 font-semibold">/ciclo</span></p>
+                <p className="mt-4 text-sm text-slate-400">{plan.desc}</p>
+                <a href="/signup" className="mt-8 inline-flex w-full justify-center rounded-xl bg-white text-slate-900 px-4 py-3 text-sm font-bold hover:bg-blue-50 transition-colors">
+                  Assinar {plan.name}
+                </a>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="py-32 px-6 relative overflow-hidden">
         <div className="max-w-5xl mx-auto rounded-[48px] bg-gradient-to-br from-blue-700 via-indigo-800 to-purple-900 p-12 lg:p-24 text-center relative overflow-hidden shadow-2xl shadow-blue-900/40">
           <div className="relative z-10 space-y-8">
@@ -190,15 +220,44 @@ export default function LandingPage() {
               Junte-se a centenas de petshops que profissionalizaram sua operacao com a PetSystem.
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center pt-4">
-              <a href="/signup" className="bg-white text-blue-900 px-12 py-5 rounded-2xl font-black text-lg hover:scale-105 transition-all shadow-xl shadow-black/10">
+              <a href="#planos" className="bg-white text-blue-900 px-12 py-5 rounded-2xl font-black text-lg hover:scale-105 transition-all shadow-xl shadow-black/10">
                 Comecar Gratis
               </a>
-              <a href="/login" className="bg-black/20 backdrop-blur-md border border-white/20 text-white px-12 py-5 rounded-2xl font-black text-lg hover:bg-black/30 transition-all">
+              <a href="#suporte" className="bg-black/20 backdrop-blur-md border border-white/20 text-white px-12 py-5 rounded-2xl font-black text-lg hover:bg-black/30 transition-all">
                 Agendar Mentoria
               </a>
             </div>
           </div>
           <div className="absolute top-[-20%] right-[-10%] w-96 h-96 bg-white/10 blur-[100px] rounded-full" />
+        </div>
+      </section>
+
+      <section id="suporte" className="relative z-10 py-24 px-6 border-y border-white/5 bg-white/[0.02]">
+        <div className="max-w-5xl mx-auto text-center">
+          <h2 className="text-4xl font-black text-white">Suporte que responde rapido</h2>
+          <p className="mt-4 text-slate-400 text-lg">Atendimento por WhatsApp, onboarding assistido e acompanhamento de implantacao.</p>
+          <div className="mt-10 grid md:grid-cols-3 gap-6 text-left">
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+              <h3 className="text-white font-bold">Implantacao guiada</h3>
+              <p className="mt-2 text-sm text-slate-400">Configuramos agenda, servicos, produtos e financeiro junto com sua equipe.</p>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+              <h3 className="text-white font-bold">Canal direto</h3>
+              <p className="mt-2 text-sm text-slate-400">Suporte humano para duvidas de operacao e melhorias continuas.</p>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+              <h3 className="text-white font-bold">Treinamento continuo</h3>
+              <p className="mt-2 text-sm text-slate-400">Material de apoio para recepcao, banho/tosa, clinica e financeiro.</p>
+            </div>
+          </div>
+          <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4">
+            <a href="/signup" className="rounded-xl bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 text-sm font-bold transition-colors">
+              Criar conta de teste
+            </a>
+            <a href="/login" className="rounded-xl border border-white/20 text-white px-6 py-3 text-sm font-bold hover:bg-white/5 transition-colors">
+              Ja tenho conta
+            </a>
+          </div>
         </div>
       </section>
 
@@ -219,14 +278,14 @@ export default function LandingPage() {
             <h4 className="text-white font-bold mb-6">Produto</h4>
             <ul className="space-y-4 text-sm text-slate-500 font-medium">
               <li><a href="#funcionalidades" className="hover:text-blue-400 transition-colors">Funcionalidades</a></li>
-              <li><a href="/pricing" className="hover:text-blue-400 transition-colors">Precos</a></li>
+              <li><a href="#planos" className="hover:text-blue-400 transition-colors">Precos</a></li>
             </ul>
           </div>
           <div>
             <h4 className="text-white font-bold mb-6">Suporte</h4>
             <ul className="space-y-4 text-sm text-slate-500 font-medium">
-              <li><a href="/login" className="hover:text-blue-400 transition-colors">Central de Ajuda</a></li>
-              <li><a href="/login" className="hover:text-blue-400 transition-colors">Contato</a></li>
+              <li><a href="#suporte" className="hover:text-blue-400 transition-colors">Central de Ajuda</a></li>
+              <li><a href="#suporte" className="hover:text-blue-400 transition-colors">Contato</a></li>
             </ul>
           </div>
         </div>
