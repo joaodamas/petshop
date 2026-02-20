@@ -394,16 +394,20 @@ export async function getDashboard(dayISO: string) {
   const inactivityCutoff = new Date(start)
   inactivityCutoff.setDate(inactivityCutoff.getDate() - 60)
 
-  const { data: inactiveClientsData, error: inactiveClientsErr } = await supabase
+  const { data: clientsData, error: clientsErr } = await supabase
     .from('clients')
     .select('id')
     .eq('petshop_id', petshop_id)
-    .not('id', 'in', `(${(allSales ?? [])
-      .filter((s) => new Date(s.sold_at) >= inactivityCutoff && s.client_id)
-      .map((s) => `'${s.client_id}'`)
-      .join(',') || "''"})`)
 
-  if (inactiveClientsErr) throw inactiveClientsErr
+  if (clientsErr) throw clientsErr
+
+  const activeClientIds = new Set(
+    (allSales ?? [])
+      .filter((s) => new Date(s.sold_at) >= inactivityCutoff && s.client_id)
+      .map((s) => s.client_id as string)
+  )
+
+  const clientesInativos = (clientsData ?? []).filter((c) => !activeClientIds.has(c.id)).length
 
   return {
     todaySalesCents,
@@ -414,6 +418,6 @@ export async function getDashboard(dayISO: string) {
     lowStock,
     ticketMedioCents,
     taxaRecorrencia,
-    clientesInativos: inactiveClientsData?.length ?? 0,
+    clientesInativos,
   }
 }
