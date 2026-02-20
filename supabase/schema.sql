@@ -76,7 +76,13 @@ create table if not exists public.services (
 create index if not exists services_petshop_idx on public.services(petshop_id);
 
 -- 6) APPOINTMENTS (AGENDA)
-create type public.appointment_status as enum ('scheduled','in_progress','done','canceled');
+do $$
+begin
+  create type public.appointment_status as enum ('scheduled','in_progress','done','canceled');
+exception
+  when duplicate_object then null;
+end
+$$;
 
 create table if not exists public.appointments (
   id uuid primary key default gen_random_uuid(),
@@ -111,7 +117,13 @@ create table if not exists public.products (
 create index if not exists products_petshop_idx on public.products(petshop_id);
 create index if not exists products_name_idx on public.products using gin (to_tsvector('portuguese', name));
 -- 8) SALES
-create type public.payment_method as enum ('cash','pix','debit','credit','transfer','other');
+do $$
+begin
+  create type public.payment_method as enum ('cash','pix','debit','credit','transfer','other');
+exception
+  when duplicate_object then null;
+end
+$$;
 
 create table if not exists public.sales (
   id uuid primary key default gen_random_uuid(),
@@ -136,7 +148,13 @@ create table if not exists public.sale_items (
 create index if not exists sale_items_sale_idx on public.sale_items(sale_id);
 
 -- 9) FINANCIAL LEDGER
-create type public.ledger_type as enum ('income','expense');
+do $$
+begin
+  create type public.ledger_type as enum ('income','expense');
+exception
+  when duplicate_object then null;
+end
+$$;
 
 create table if not exists public.ledger_entries (
   id uuid primary key default gen_random_uuid(),
